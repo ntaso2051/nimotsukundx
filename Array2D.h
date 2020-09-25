@@ -5,10 +5,12 @@ template< class T > class Array2D {
 public:
 	Array2D() : mArray(0) {}
 	~Array2D() {
-		SAFE_DELETE_ARRAY(mArray);
+		delete[] mArray;
+		mArray = 0;
 	}
 	void setSize(int size0, int size1) {
-		SAFE_DELETE_ARRAY(mArray);
+		delete[] mArray;
+		mArray = 0;
 		mSize0 = size0;
 		mSize1 = size1;
 		mArray = new T[size0 * size1];
