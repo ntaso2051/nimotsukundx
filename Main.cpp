@@ -1,5 +1,8 @@
 #include "DxLib.h"
 #include "Image.h"
+#include "Array2D.h"
+#include "File.h"
+#include <fstream>
 
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -15,6 +18,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	for (int i = 0; i < 5; i++) {
 		image.draw(i, 0, i);
 	}
+
+	File file("source/stage/stageData.txt");
+	file.drawString();
+
 	// DrawPixel(320, 240, GetColor(255, 255, 255));	// 点を打つ
 
 	WaitKey();				// キー入力待ち
