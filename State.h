@@ -13,6 +13,7 @@ public:
 	void update();
 	void draw() const;
 	void drawDebug() const;
+	bool checkIsClear();
 	
 private:
 	enum Object {

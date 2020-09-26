@@ -28,7 +28,7 @@ State::State() : mImage(0), stageData(0), canGetInput(true){
 		case ' ': t = OBJ_SPACE; break;
 		case 'o': t = OBJ_BLOCK; break;
 		case 'O': t = OBJ_BLOCK; goalFlag = true; break;
-		case '.': t = OBJ_GOAL; goalFlag = true; break;
+		case '.': t = OBJ_SPACE; goalFlag = true; break;
 		case 'p': t = OBJ_PLAYER; break;
 		case 'P': t = OBJ_PLAYER; goalFlag = true; break;
 		case '\n': x = 0; y++; t = OBJ_UNKNOWN; break;
@@ -74,7 +74,10 @@ void State::draw() const {
 	for (int y = 0; y < mHeight; y++) {
 		for (int x = 0; x < mWidth; x++) {
 			mImage->draw(x, y, OBJ_SPACE);
-			mImage->draw(x, y, mObjects(x, y));
+			if (mObjects(x, y) != OBJ_SPACE)
+				mImage->draw(x, y, mObjects(x, y));
+			if (mGoalFlags(x,y))
+				mImage->draw(x, y, IMAGE_ID_GOAL);
 		}
 	}
 }
@@ -92,7 +95,7 @@ void State::update() {
 	int dy = 0;
 	if (canGetInput) {
 		if (CheckHitKey(KEY_INPUT_W)) {
-			DrawString(0, 0, "W input", GetColor(0, 255, 0));
+			// DrawString(0, 0, "W input", GetColor(0, 255, 0));
 			dy = -1;
 			canGetInput = false;
 		}
@@ -121,7 +124,7 @@ void State::update() {
 	for (int i = 0; i < h; i++) {
 		for (int j = 0; j < w; j++) {
 			if (mObjects(i, j) == OBJ_PLAYER) {
-				DrawFormatString(50, 100, GetColor(0, 255, 0), "(%d, %d), (%d, %d)", x, y, dx, dy);
+				// DrawFormatString(50, 100, GetColor(0, 255, 0), "(%d, %d), (%d, %d)", x, y, dx, dy);
 				x = i; y = j;
 				found = true;
 				break;
@@ -133,7 +136,7 @@ void State::update() {
 	int tx = x + dx;
 	int ty = y + dy;
 
-	DrawFormatString(50, 130, GetColor(0, 255, 0), "(%d, %d)", tx, ty);
+	// DrawFormatString(50, 130, GetColor(0, 255, 0), "(%d, %d)", tx, ty);
 
 	if (tx < 0 || ty < 0 || tx >= w || ty >= h) {
 		return;
@@ -155,4 +158,16 @@ void State::update() {
 			mObjects(x, y) = OBJ_SPACE;
 		}
 	}
+}
+
+bool State::checkIsClear() {
+	for (int y = 0; y < mHeight; y++) {
+		for (int x = 0; x < mWidth; x++) {
+			if (mObjects(x, y) == OBJ_BLOCK) {
+				if (!mGoalFlags(x, y))return false;
+			}
+		}
+	}
+	canGetInput = false;
+	return true;
 }

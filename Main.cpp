@@ -26,9 +26,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	State* state = new State();
 
 	while (!(ScreenFlip()) && !(ProcessMessage()) && !(ClearDrawScreen())) {
-		state->draw();
-		state->drawDebug();
-		state->update();
+		if (!state->checkIsClear()) {
+			state->draw();
+			// state->drawDebug();
+			state->update();
+		}
+		else {
+			DrawString(200, 200, "Clear !!", GetColor(255, 255, 0));
+		}
 	}
 	// DrawPixel(320, 240, GetColor(255, 255, 255));	// “_‚ð‘Å‚Â
 
