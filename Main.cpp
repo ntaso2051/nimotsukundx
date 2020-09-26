@@ -1,8 +1,8 @@
 #include "DxLib.h"
-#include "Image.h"
-#include "Array2D.h"
-#include "File.h"
-#include <fstream>
+// #include "Image.h"
+// #include "Array2D.h"
+// #include "File.h"
+// #include <fstream>
 #include "State.h"
 
 // ƒvƒƒOƒ‰ƒ€‚Í WinMain ‚©‚çn‚Ü‚è‚Ü‚·
