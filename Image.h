@@ -5,7 +5,7 @@ class Image {
 public:
 	Image(const char* filename, int AllNum, int XNum, int YNum, int XSize, int YSize);
 	~Image();
-	void draw(int x, int y, int id) const;
+	void draw(int x, int y, int dx, int dy, int id) const;
 private:
 	int mWidth;
 	int mHeight;

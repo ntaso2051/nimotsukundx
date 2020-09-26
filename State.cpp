@@ -3,42 +3,111 @@
 #include "File.h"
 #include "DxLib.h"
 
-State::State() : mImage(0), stageData(0), canGetInput(true){
+class State::Object {
+public:
+	enum Type {
+		OBJ_PLAYER,
+		OBJ_WALL,
+		OBJ_BLOCK,
+		OBJ_SPACE,
+		OBJ_GOAL,
+
+		OBJ_UNKNOWN,
+	};
+
+	enum ImageID {
+		IMAGE_ID_PLAYER,
+		IMAGE_ID_WALL,
+		IMAGE_ID_BLOCK,
+		IMAGE_ID_SPACE,
+		IMAGE_ID_GOAL,
+	};
+
+	Object() : mType(OBJ_WALL), mGoalFlag(false), mMoveX(0), mMoveY(0) {}
+
+	void set(char c) {
+		switch (c) {
+		case '#': mType = OBJ_WALL; break;
+		case ' ': mType = OBJ_SPACE; break;
+		case 'o': mType = OBJ_BLOCK; break;
+		case 'O': mType = OBJ_BLOCK; mGoalFlag = true; break;
+		case '.': mType = OBJ_SPACE; mGoalFlag = true; break;
+		case 'p': mType = OBJ_PLAYER; break;
+		case 'P': mType = OBJ_PLAYER; mGoalFlag = true; break;
+		// case '\n': x = 0; y++; t = OBJ_UNKNOWN; break;
+		// default: t = OBJ_UNKNOWN; break;
+		}
+	}
+
+	void drawBackGround(int x, int y, Image* image) const {
+		ImageID id = IMAGE_ID_SPACE;
+		if (mType == OBJ_WALL) {
+			image->draw(x, y, 0, 0, IMAGE_ID_WALL);
+		}
+		else {
+			if (mGoalFlag) {
+				image->draw(x, y, 0, 0, IMAGE_ID_SPACE);
+				image->draw(x, y, 0, 0, IMAGE_ID_GOAL);
+			}
+			else {
+				image->draw(x, y, 0, 0, IMAGE_ID_SPACE);
+			}
+		}
+	}
+
+	void drawForeground(int x, int y, const Image* image, int moveCount) const {
+		ImageID id = IMAGE_ID_SPACE;
+		if (mType == OBJ_BLOCK) {
+			id = IMAGE_ID_BLOCK;
+		}
+		else if (mType == OBJ_PLAYER) {
+			id = IMAGE_ID_PLAYER;
+		}
+		if (id != IMAGE_ID_SPACE) {
+			int dx = mMoveX * (32 - moveCount);
+			int dy = mMoveY * (32 - moveCount);
+			image->draw(x, y, dx, dy, id);
+		}
+	}
+
+	void move(int dx, int dy) {
+		mMoveX = dx;
+		mMoveY = dy;
+	}
+
+	Type mType;
+	bool mGoalFlag;
+	int mMoveX;
+	int mMoveY;
+};
+
+State::State() : mImage(0), stageData(0), canGetInput(true), mMoveCount(0){
 	canGetInput = true;
 	File file("source/stage/stageData.txt");
 	stageData = file.data();
 	size = file.size();
 	setSize();
 	mObjects.setSize(mWidth, mHeight);
-	mGoalFlags.setSize(mWidth, mHeight);
-
+	/*
 	for (int y = 0; y < mHeight; y++) {
 		for (int x = 0; x < mWidth; x++) {
 			mObjects(x, y) = OBJ_WALL;
 			mGoalFlags(x, y) = false;
 		}
 	}
+	*/
 	int x = 0;
 	int y = 0;
 	for (int i = 0; i < size; i++) {
 		Object t;
 		bool goalFlag = false;
 		switch (stageData[i]) {
-		case '#': t = OBJ_WALL; break;
-		case ' ': t = OBJ_SPACE; break;
-		case 'o': t = OBJ_BLOCK; break;
-		case 'O': t = OBJ_BLOCK; goalFlag = true; break;
-		case '.': t = OBJ_SPACE; goalFlag = true; break;
-		case 'p': t = OBJ_PLAYER; break;
-		case 'P': t = OBJ_PLAYER; goalFlag = true; break;
-		case '\n': x = 0; y++; t = OBJ_UNKNOWN; break;
-		default: t = OBJ_UNKNOWN; break;
-		}
-
-		if (t != OBJ_UNKNOWN) {
-			mObjects(x, y) = t;
-			mGoalFlags(x, y) = goalFlag;
-			x++;
+		case '#': case ' ': case 'o': case 'O':
+		case '.': case 'p': case 'P':
+			mObjects(x, y).set(stageData[i]);
+			++x;
+			break;
+		case '\n': x = 0; ++y; break;
 		}
 	}
 	mImage = new Image("source/image/nimotsukun.png", 5, 5, 1, 32, 32);
@@ -73,11 +142,13 @@ void State::setSize() {
 void State::draw() const {
 	for (int y = 0; y < mHeight; y++) {
 		for (int x = 0; x < mWidth; x++) {
-			mImage->draw(x, y, OBJ_SPACE);
-			if (mObjects(x, y) != OBJ_SPACE)
-				mImage->draw(x, y, mObjects(x, y));
-			if (mGoalFlags(x,y))
-				mImage->draw(x, y, IMAGE_ID_GOAL);
+			mObjects(x, y).drawBackGround(x,y,mImage);
+		}
+	}
+
+	for (int y = 0; y < mHeight; y++) {
+		for (int x = 0; x < mWidth; x++) {
+			mObjects(x, y).drawForeground(x, y, mImage, mMoveCount);
 		}
 	}
 }
@@ -90,7 +161,20 @@ void State::drawDebug() const {
 	}
 }
 
-void State::update() {
+void State::update(int moveX, int moveY) {
+	if (mMoveCount == 32) {
+		mMoveCount = 0;
+		for (int y = 0; y < mHeight; y++) {
+			for (int x = 0; x < mWidth; x++) {
+				mObjects(x, y).mMoveX = 0;
+				mObjects(x, y).mMoveY = 0;
+			}
+		}
+	}
+	if (mMoveCount > 0) {
+		mMoveCount++;
+		return;
+	}
 	int dx = 0;
 	int dy = 0;
 	if (canGetInput) {
@@ -123,7 +207,7 @@ void State::update() {
 	bool found = false;
 	for (int i = 0; i < h; i++) {
 		for (int j = 0; j < w; j++) {
-			if (mObjects(i, j) == OBJ_PLAYER) {
+			if (mObjects(i, j).mType == Object::OBJ_PLAYER) {
 				// DrawFormatString(50, 100, GetColor(0, 255, 0), "(%d, %d), (%d, %d)", x, y, dx, dy);
 				x = i; y = j;
 				found = true;
@@ -142,20 +226,25 @@ void State::update() {
 		return;
 	}
 
-	if (mObjects(tx, ty) == OBJ_SPACE) {
-		mObjects(tx, ty) = OBJ_PLAYER;
-		mObjects(x, y) = OBJ_SPACE;
+	if (mObjects(tx, ty).mType == Object::OBJ_SPACE) {
+		mObjects(tx, ty).mType = Object::OBJ_PLAYER;
+		mObjects(tx, ty).move(dx, dy);
+		mMoveCount++;
+		mObjects(x, y).mType = Object::OBJ_SPACE;
 	}
-	else if (mObjects(tx, ty) == OBJ_BLOCK) {
+	else if (mObjects(tx, ty).mType == Object::OBJ_BLOCK) {
 		int tx2 = tx + dx;
 		int ty2 = ty + dy;
 		if (tx2 < 0 || ty2 < 0 || tx2 >= w || ty2 >= h) {
 			return;
 		}
-		if (mObjects(tx2, ty2) == OBJ_SPACE) {
-			mObjects(tx2, ty2) = OBJ_BLOCK;
-			mObjects(tx, ty) = OBJ_PLAYER;
-			mObjects(x, y) = OBJ_SPACE;
+		if (mObjects(tx2, ty2).mType == Object::OBJ_SPACE) {
+			mObjects(tx2, ty2).mType = Object::OBJ_BLOCK;
+			mObjects(tx2, ty2).move(dx, dy);
+			mObjects(tx, ty).mType = Object::OBJ_PLAYER;
+			mObjects(tx, ty).move(dx, dy);
+			mMoveCount++;
+			mObjects(x, y).mType = Object::OBJ_SPACE;
 		}
 	}
 }
@@ -163,8 +252,8 @@ void State::update() {
 bool State::checkIsClear() {
 	for (int y = 0; y < mHeight; y++) {
 		for (int x = 0; x < mWidth; x++) {
-			if (mObjects(x, y) == OBJ_BLOCK) {
-				if (!mGoalFlags(x, y))return false;
+			if (mObjects(x, y).mType == Object::OBJ_BLOCK) {
+				if (!(mObjects(x,y).mGoalFlag))return false;
 			}
 		}
 	}

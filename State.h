@@ -10,12 +10,14 @@ class State {
 public:
 	State();
 	~State();
-	void update();
+	void update(int moveX, int moveY);
 	void draw() const;
 	void drawDebug() const;
 	bool checkIsClear();
 	
 private:
+	class Object;
+	/*
 	enum Object {
 		OBJ_PLAYER,
 		OBJ_WALL,
@@ -33,17 +35,18 @@ private:
 		IMAGE_ID_SPACE,
 		IMAGE_ID_GOAL,
 	};
+	*/
 
 	void setSize();
 
 	int mWidth;
 	int mHeight;
 	Array2D<Object>mObjects;
-	Array2D<bool>mGoalFlags;
 	Image* mImage;
 	const char* stageData;
 	int size;
 	bool canGetInput;
+	int mMoveCount;
 };
 
 #endif

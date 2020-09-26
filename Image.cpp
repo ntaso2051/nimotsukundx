@@ -15,6 +15,6 @@ Image::~Image() {
 	mData = 0;
 }
 
-void Image::draw(int x, int y, int id) const {
-	DrawGraph(x * mWidth, y * mHeight, mData[id], TRUE);
+void Image::draw(int x, int y, int dx, int dy, int id) const {
+	DrawGraph(x * mWidth - dx, y * mHeight - dy, mData[id], TRUE);
 }

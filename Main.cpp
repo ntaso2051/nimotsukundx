@@ -29,7 +29,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (!state->checkIsClear()) {
 			state->draw();
 			// state->drawDebug();
-			state->update();
+			state->update(0, 0);
 		}
 		else {
 			DrawString(200, 200, "Clear !! Exit to push escape key", GetColor(255, 255, 0));
