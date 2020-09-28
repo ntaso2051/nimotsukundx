@@ -14,6 +14,7 @@ public:
 	void draw() const;
 	void drawDebug() const;
 	bool checkIsClear();
+	void reset();
 	
 private:
 	class Object;

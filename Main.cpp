@@ -5,6 +5,9 @@
 // #include <fstream>
 #include "State.h"
 
+int gCounter = 1;
+bool gClear = false;
+
 // プログラムは WinMain から始まります
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -32,8 +35,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			state->update(0, 0);
 		}
 		else {
-			DrawString(200, 200, "Clear !! Exit to push escape key", GetColor(255, 255, 0));
-			if (CheckHitKey(KEY_INPUT_ESCAPE))break;
+			if (!gClear) {
+				state->draw();
+				// state->drawDebug();
+				state->update(0, 0);
+				gCounter++;
+			}
+			if (gCounter % 60 == 0) {
+				gClear = true;
+				DrawString(200, 200, "Clear !! Exit to push escape key", GetColor(255, 255, 0));
+				if (CheckHitKey(KEY_INPUT_ESCAPE))break;
+			}
 		}
 	}
 	// DrawPixel(320, 240, GetColor(255, 255, 255));	// 点を打つ

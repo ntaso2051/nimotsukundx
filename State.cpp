@@ -260,3 +260,7 @@ bool State::checkIsClear() {
 	canGetInput = false;
 	return true;
 }
+
+void State::reset() {
+
+}
